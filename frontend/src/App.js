@@ -1,16 +1,16 @@
-function App() {
-  return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gray-900 text-white">
-      <h1 className="text-4xl font-bold mb-4">EmotionPath</h1>
-      <p className="text-gray-400 mb-6 text-center max-w-md">
-        A safe space to talk. No judgement. No social pressure.
-      </p>
+import react from 'react';
+import { Route, Routes } from 'react-router-dom';
+import LandingPage from './pages/LandingPage';
+import './App.css';
+import WaitingPage from './pages/WaitingPage';
 
-      <button className="bg-purple-600 px-6 py-3 rounded-lg hover:bg-purple-700">
-        Start Anonymous Chat
-      </button>
-    </div>
-  );
+const App = () => {
+  return (
+   <Routes>
+    <Route path="/" element ={<LandingPage />}/>
+    <Route path= "/waiting" element = {<WaitingPage/>}/>
+   </Routes>
+  )
 }
 
 export default App;
