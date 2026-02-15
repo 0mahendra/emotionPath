@@ -1,7 +1,19 @@
-export const sendMessage = (req ,res) => {
-    const {message} = req.body;
+import { endConversation } from "../services/ConversationServices.js";
 
-    console.log(`Received message: ${message}`);
+export const endChat  = async (req ,res )=> {
+    const {conversationId , endedBy} = req.body;
 
-    res.status(200).json({success : true, reply : 'message received'});
+    const result = await endConversation(conversationId , endedBy);
+
+    if(!result){
+        return res.status(400).json({
+      success: false,
+      message: "Conversation not active or not found"
+    });
+     }
+     
+      res.json({
+    success: true,
+    message: "Chat ended successfully"
+  });
 };
