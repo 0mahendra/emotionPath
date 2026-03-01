@@ -1,8 +1,16 @@
-import React from "react";
 import Header from "../components/Header";
 import logoHeart from "../assets/logoHeart.jpg";
 import logo3 from "../assets/logo3.jpg";
+import { useNavigate } from "react-router-dom";
+
+
 const LandingPage = () => {
+  
+const navigate = useNavigate();
+
+    const CreateChat =  () => {
+      navigate("/Guest");
+    }
     return (
         <>
          <div className="w-full bg-slate-900 flex items-center justify-center ">
@@ -31,7 +39,7 @@ const LandingPage = () => {
             </p>
 
             <div className="flex justify-center">
-              <button className="inline-flex text-white bg-indigo-600 border-0 py-2 px-6 hover:bg-indigo-700 rounded-xl text-lg">
+              <button onClick={CreateChat} className="inline-flex text-white bg-indigo-600 border-0 py-2 px-6 hover:bg-indigo-700 rounded-xl text-lg">
                 Start Chat (without sign up)
               </button>
 

@@ -1,10 +1,11 @@
 import Conversation from "../models/ConversationModel.js";
+import { assignNextGuest } from "../services/ConversationServices.js";
 
 export const getConversationStatus = async (req ,res) => {
     try {
         const {id} =req.params;
-    const convo = await Conversation.findById(id);
-
+     const convo = await Conversation.findById(id);
+        await assignNextGuest();
     if(!convo) {
           return res.status(404).json({
         success: false,

@@ -11,7 +11,6 @@ export const assignNextGuest = async () => {
     isGuest: true,
     status: "waiting"
   }).sort({ createdAt: 1 });
-
   if (!conversation) return null;
 
   conversation.status = "active";
@@ -19,6 +18,13 @@ export const assignNextGuest = async () => {
   conversation.startedAt = new Date();
 
   await conversation.save();
+
+   if(conversation.counsellorId) {
+     if (counsellor) {
+      counsellor.isActive = false;
+      await counsellor.save();
+    }
+   }
   return conversation;
 };
 
@@ -35,13 +41,12 @@ export const endConversation = async (conversationId, endedBy) => {
 
     const counsellor = await User.findById(convo.counsellorId);
      if (counsellor) {
-      counsellor.isAvailable = true;
+      counsellor.isActive = true;
       await counsellor.save();
     }
    }
 
-   await convo.save();
-
+   assignNextGuest();
    return convo;
 }
 
