@@ -36,7 +36,8 @@ export const endConversation = async (conversationId, endedBy) => {
    convo.status = "ended";
    convo.endedAt = new Date();
    convo.endReason = endedBy;
-
+    
+   await convo.save();
    if(convo.counsellorId) {
 
     const counsellor = await User.findById(convo.counsellorId);

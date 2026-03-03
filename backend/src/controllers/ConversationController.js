@@ -24,4 +24,52 @@ export const getConversationStatus = async (req ,res) => {
         });
     }
 
+};
+
+export const getWaitingGuests = async (req , res ) => {
+    try {
+        const waitingGuests = await Conversation.findOne({
+            isGuest: true,
+            status: "waiting"
+          }).sort({ createdAt: 1 });
+        
+        if(!waitingGuests ) {
+            return res.status(404).json({
+                success: false,
+                message: "No waiting guests found"
+            });
+        }
+        res.json({
+            success: true,
+            guests: waitingGuests
+        });
+    }catch(err) {
+        console.log(err);
+        res.status(500).json({
+            success: false,
+            message: "Server Error"
+        });
+    }
+};
+
+export const AccpectChat = async (req ,res) => {
+    try {
+    const {conversationId} = req.params;
+
+    const convo = await Conversation.findById(conversationId);
+
+     convo.status = "active";
+     convo.startedAt = new Date();
+       await convo.save();
+       res.json({
+        success: true,
+        message: "Chat accepted"
+       });
+    }catch(err) {
+        console.log(err);
+        res.status(500).json({
+            success: false,
+            message: "Server Error"
+        });
+    }
 }

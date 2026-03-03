@@ -1,10 +1,12 @@
 import axios from "axios";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
-const GuestChat = () => {
+const CounselorChatPage= () => {
 
     const navigate = useNavigate();
+    const {user} = useAuth();
 
     const [message , setMessage] = useState([]);
     const [input ,setInput] = useState("");
@@ -25,7 +27,7 @@ const GuestChat = () => {
 
       // console.log(res.data);
       localStorage.removeItem("conversationId");
-      navigate("/");
+      navigate("/counsellor/dashboard");
       
 
     } catch (error) {
@@ -43,7 +45,7 @@ const GuestChat = () => {
     await axios.post("http://localhost:5000/api/message/send", {
       conversationId,
       senderId:conversationId,
-      senderRole: "user",
+      senderRole: "counselor",
       text: input
    });
    setInput("");
@@ -76,7 +78,7 @@ const GuestChat = () => {
   
   {/* Header */}
   <div className="p-4 bg-blue-600 text-white flex justify-between">
-    <h1>Guest Chat 💬</h1>
+    <h1>{user.name} Chat 💬</h1>
        <button
         onClick={handleEndChat}
         className="bg-red-500 text-white px-4 py-2 rounded"
@@ -91,7 +93,7 @@ const GuestChat = () => {
   <div
     key={index}
     className={`p-2 rounded max-w-xs ${
-      msg.senderRole === "user"
+      msg.senderRole === "counselor"
         ? "bg-blue-500 text-white self-end ml-auto"
         : "bg-gray-200"
     }`}
@@ -122,4 +124,4 @@ const GuestChat = () => {
   );
 };
 
-export default GuestChat;
+export default CounselorChatPage;
