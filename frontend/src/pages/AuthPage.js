@@ -1,7 +1,7 @@
-import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { useAuth } from "../context/AuthContext";
+import axiosInstance from "../utils/AxiosInstance";
 
 const AuthPage = () => {
     const [name, setName] = useState("");
@@ -20,7 +20,7 @@ const AuthPage = () => {
             alert("Please enter email and password");
             return;
            }
-            const res = await axios.post("http://localhost:5000/api/auth/login", {email ,password});
+            const res = await axiosInstance.post("api/auth/login", {email ,password});
 
             login(res.data);
 
@@ -51,8 +51,8 @@ const AuthPage = () => {
         alert("Passwords do not match");
         return;
       }
-     const res =  await axios.post(
-        "http://localhost:5000/api/auth/register",
+     const res =  await axiosInstance.post(
+        "/api/auth/register",
         { name, email, password }
       );
 

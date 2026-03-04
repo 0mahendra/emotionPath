@@ -61,6 +61,10 @@ export const AccpectChat = async (req ,res) => {
      convo.status = "active";
      convo.startedAt = new Date();
        await convo.save();
+
+       const io = req.app.get("io");
+
+       io.to(conversationId).emit("conversationActivated");
        res.json({
         success: true,
         message: "Chat accepted"

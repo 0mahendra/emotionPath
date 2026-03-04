@@ -1,22 +1,25 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "../context/AuthContext"
-import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import axiosInstance from "../utils/AxiosInstance";
+import socket from "../socket";
 
 
 const CounsellorDashboard = () => {
     const {user} = useAuth();
     const [waitingGuest, setWaitingGuest] = useState(null);
     const navigate = useNavigate();
-
+    const [conversationId, setConversationId] = useState(null);
+  
     const handleStartChat = async () => {
         try {
 
             // console.log(waitingGuest._id);
-            const res = await axios.post(
-                `http://localhost:5000/api/conversation/accept/${waitingGuest._id}`
+            const res = await axiosInstance.post(
+                `/api/conversation/accept/${waitingGuest._id}`
             );
             localStorage.setItem("conversationId", waitingGuest._id);
+            setConversationId(waitingGuest._id);
             navigate("/counselor/chat");
 
             
@@ -30,10 +33,29 @@ const CounsellorDashboard = () => {
            fetchWaitingGuest();
     }, []);
 
+ useEffect(() => {
+
+  socket.on("newGuestWaiting", () => {
+    fetchWaitingGuest();
+  });
+
+  return () => {
+    socket.off("newGuestWaiting");
+  };
+
+}, []);
+
+    useEffect( ()=> {
+        if(conversationId) {
+            socket.emit("joinConversation", conversationId);
+        }
+    },[conversationId]);
+
+
 
     const fetchWaitingGuest = async () => {
         try {
-            const res = await axios.get("http://localhost:5000/api/conversation/waiting");
+            const res = await axiosInstance.get("/api/conversation/waiting");
             setWaitingGuest(res.data.guests);
             // console.log(res.data.guests);
            }catch(error) {

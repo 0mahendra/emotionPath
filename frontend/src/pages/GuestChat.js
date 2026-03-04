@@ -1,6 +1,7 @@
-import axios from "axios";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import axiosInstance from "../utils/AxiosInstance";
+import socket from "../socket";
 
 const GuestChat = () => {
 
@@ -10,12 +11,20 @@ const GuestChat = () => {
     const [input ,setInput] = useState("");
     const bottomRef = useRef(null);
 
+  useEffect(() => {
+  const conversationId = localStorage.getItem("conversationId");
+
+  if (conversationId) {
+    socket.emit("joinConversation", conversationId);
+  }
+
+}, []);
   const handleEndChat = async () => {
     try {
       const conversationId = localStorage.getItem("conversationId");
 
-      const res = await axios.patch(
-        "http://localhost:5000/api/chat/end",
+      const res = await axiosInstance.patch(
+        "/api/chat/end",
         {
           conversationId,
           endedBy: "guest"
@@ -25,6 +34,7 @@ const GuestChat = () => {
 
       // console.log(res.data);
       localStorage.removeItem("conversationId");
+       socket.emit("endChat", conversationId);
       navigate("/");
       
 
@@ -32,6 +42,13 @@ const GuestChat = () => {
       console.error(error);
     }
   };
+  useEffect(() => {
+  socket.on("chatEnded", () => {
+    navigate("/");
+  });
+
+  return () => socket.off("chatEnded");
+}, []);
 
   const handleSend = async() => {
       // console.log(input);
@@ -40,31 +57,48 @@ const GuestChat = () => {
 
     const conversationId = localStorage.getItem("conversationId");
     
-    await axios.post("http://localhost:5000/api/message/send", {
+    await axiosInstance.post("/api/message/send", {
       conversationId,
       senderId:conversationId,
       senderRole: "user",
       text: input
    });
+   const messageData = {
+    conversationId,
+    senderRole: "user",
+    text: input,
+  };
+
+  socket.emit("sendMessage", messageData);
+
+  // setMessage((prev) => [...prev, messageData]);
+
    setInput("");
    
   }
+   
+ useEffect(() => {
+  const handleReceive = (data) => {
+    setMessage((prev) => [...prev, data]);
+  };
 
-  useEffect(()=> {
+  socket.on("receiveMessage", handleReceive);
 
-    const fetchMsg = async () => {
-      const conversationId = localStorage.getItem("conversationId");
+  return () => {
+    socket.off("receiveMessage", handleReceive);
+  };
+}, []);
+  useEffect(() => {
+  const fetchMsg = async () => {
+    const conversationId = localStorage.getItem("conversationId");
 
-      const res = await axios.get(
-                  `http://localhost:5000/api/message/${conversationId}`
-                );
-        setMessage(res.data);
-    };
-    fetchMsg();
-
-    const interval = setInterval(fetchMsg , 2000);
-    return () => clearInterval(interval);
-  }, []);
+    const res = await axiosInstance.get(
+      `/api/message/${conversationId}`
+    );
+    setMessage(res.data);
+  };
+  fetchMsg();
+}, []);
 
   useEffect(() => {
    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -105,19 +139,28 @@ const GuestChat = () => {
   
 
   {/* Input Area */}
+  
+  <form   onSubmit={(e) => {
+    e.preventDefault();
+    handleSend();
+  }}
+  >
   <div className="p-4 border-t flex gap-2">
     <input
       type="text"
+      value={input}
       onChange={(e)=>setInput(e.target.value)}
       placeholder="Type a message..."
       className="flex-1 border rounded px-3 py-2"
     />
-    <button onClick={handleSend}  className="bg-blue-600 text-white px-4 rounded">
+    <button type="submit" className="bg-blue-600 text-white px-4 rounded">
       Send
     </button>
+    </div>
+    </form>
   </div>
 
-</div>
+
     </>
   );
 };

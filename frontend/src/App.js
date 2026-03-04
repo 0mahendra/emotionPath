@@ -27,7 +27,7 @@ const App = () => {
            {/* <AdminDashboard /> */}
          </ProtectedRoute>}/>
 
-    <Route path = "/counsellor/chat" element={
+    <Route path = "/counselor/chat" element={
       <ProtectedRoute allowedRole="counselor">
         <CounselorChatPage />
       </ProtectedRoute>

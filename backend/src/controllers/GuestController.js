@@ -12,8 +12,12 @@ import { assignNextGuest } from "../services/ConversationServices.js";
             sessionId
         },
     });
-
+     
     await assignNextGuest();
+
+    const io = req.app.get("io");
+
+    io.emit("newGuestWaiting");
 
     return res.status(201).json({
           success: true,

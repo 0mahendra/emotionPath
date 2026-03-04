@@ -1,6 +1,7 @@
-import axios from "axios";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import axiosInstance from "../utils/AxiosInstance";
+import socket from "../socket";
 
 const GuestPage = () => {
 
@@ -14,7 +15,7 @@ const GuestPage = () => {
         const startConversation = async () => {
             try {
                 console.log("Called");
-                const res = await axios.post("http://localhost:5000/api/guest/start",
+                const res = await axiosInstance.post("/api/guest/start",
                             {
                               name: "Guest",
                               sessionId: Date.now().toString(),
@@ -25,6 +26,7 @@ const GuestPage = () => {
                         "conversationId" , res.data.conversationId
 
                      );
+                     socket.emit("joinConversation", res.data.conversationId);
                      setStatus(res.data.status);
 
                      if(res.data.status === "waiting" ){
@@ -55,31 +57,42 @@ const GuestPage = () => {
     }
     } , [status]);
 
-     useEffect(() => {
-        console.log("called3");
-    if (status === "waiting") {
-      const interval = setInterval(async () => {
-        const conversationId =
-          localStorage.getItem("conversationId");
+  //    useEffect(() => {
+  //   // if (status === "waiting") {
+  //   //   const interval = setInterval(async () => {
+  //   //     const conversationId =
+  //   //       localStorage.getItem("conversationId");
 
-        try {
-          const res = await axios.get(
-            `http://localhost:5000/api/conversation/${conversationId}`
-          );
+  //   //     try {
+  //   //       const res = await axiosInstance.get(
+  //   //         `/api/conversation/${conversationId}`
+  //   //       );
 
-          if (res.data.status === "active") {
-            clearInterval(interval);
-            setStatus("active");
-          }
+  //   //       if (res.data.status === "active") {
+  //   //         clearInterval(interval);
+  //   //         setStatus("active");
+  //   //       }
 
-        } catch (err) {
-          console.log(err);
-        }
-      }, 3000);
+  //   //     } catch (err) {
+  //   //       console.log(err);
+  //   //     }
+  //   //   }, 3000);
 
-      return () => clearInterval(interval);
-    }
-  }, [status]);
+  //   //   return () => clearInterval(interval);
+  //   // }
+  // }, [status]);
+
+  useEffect(() => {
+
+  socket.on("conversationActivated", () => {
+    setStatus("active");
+  });
+
+  return () => {
+    socket.off("conversationActivated");
+  };
+
+}, []);
 
    if (loading)
     return <div className="h-screen flex items-center justify-center">Loading...</div>;
