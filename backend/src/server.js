@@ -14,7 +14,7 @@ const server = app.listen(PORT , ()=> {
 
 const io = new Server(server , {
     cors : {
-        origin : "*",
+        origin : "https://emotionpath.netlify.app",
         methods : ["GET" , "POST" , "PATCH"]
     }
 });
