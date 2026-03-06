@@ -1,6 +1,7 @@
 import { io } from "socket.io-client";
 
-const socket = io(process.env.REACT_APP_SOCKET_URL, {
+const socket = io("https://emotionpath-1.onrender.com", {
+// const socket = io(process.env.REACT_APP_SOCKET_URL, {
   transports: ["websocket"],
 });
 
