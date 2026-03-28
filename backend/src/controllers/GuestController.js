@@ -11,6 +11,7 @@ import { assignNextGuest } from "../services/ConversationServices.js";
             name:name || 'Guest',
             sessionId
         },
+        lastActive : new Date(),
     });
      
     await assignNextGuest();

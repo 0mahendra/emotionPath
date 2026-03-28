@@ -19,20 +19,3 @@
 // });
 
 // export default router;
-import { assignNextGuest } from "../services/conversationService.js";
-
-export const assignNext = async (req, res) => {
-  const conversation = await assignNextGuest();
-
-  if (!conversation) {
-    return res.json({
-      success: false,
-      message: "No guest or counsellor available"
-    });
-  }
-
-  res.json({
-    success: true,
-    conversationId: conversation._id
-  });
-};
