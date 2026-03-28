@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axiosInstance from "../utils/AxiosInstance";
 import socket from "../socket";
+import FeedbackPopUp from "./FeedbackPopUp";
 
 const GuestChat = () => {
 
@@ -10,6 +11,9 @@ const GuestChat = () => {
     const [message , setMessage] = useState([]);
     const [input ,setInput] = useState("");
     const bottomRef = useRef(null);
+    const [timeleft , setTimeleft] = useState(9);
+
+    const [showFeedback, setShowFeedback] = useState(false);
 
   useEffect(() => {
   const conversationId = localStorage.getItem("conversationId");
@@ -35,7 +39,8 @@ const GuestChat = () => {
       // console.log(res.data);
       localStorage.removeItem("conversationId");
        socket.emit("endChat", conversationId);
-      navigate("/");
+      // navigate("/");
+      setShowFeedback(true);
       
 
     } catch (error) {
@@ -44,11 +49,13 @@ const GuestChat = () => {
   };
   useEffect(() => {
   socket.on("chatEnded", () => {
-    navigate("/");
+    // navigate("/");
+    setShowFeedback(true);
   });
 
   return () => socket.off("chatEnded");
 }, []);
+
 
   const handleSend = async() => {
       // console.log(input);
@@ -104,6 +111,39 @@ const GuestChat = () => {
    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
 }, [message]);
 
+useEffect(()=>{
+
+ const interval = setInterval(async()=>{
+  const conversationId = localStorage.getItem("conversationId");
+
+   const res = await axiosInstance.get(`/api/conversation/time-left/${conversationId}`)
+       console.log(res.data);
+       setTimeleft(res.data.timeLeft);
+       const data = {
+        conversationId,
+        timeLeft: res.data.timeLeft,
+      };
+       socket.emit("timeleft" , data);
+      if(res.data.expired){
+
+    socket.emit("endChat",conversationId)
+      alert("Guest limit reached. Signup to continue")
+      handleEndChat();
+      navigate("/signup")
+      }
+    },10000)
+    return ()=>clearInterval(interval)
+    },[]);
+
+    setInterval(()=>{
+      const conversationId = localStorage.getItem("conversationId");
+      const data = {
+        conversationId,
+        timeleft,
+      };
+ socket.emit("timeleft",data);
+},1000)
+
   return (
     <>
         <div className="h-screen flex flex-col">
@@ -111,6 +151,7 @@ const GuestChat = () => {
   {/* Header */}
   <div className="p-4 bg-blue-600 text-white flex justify-between">
     <h1>Guest Chat 💬</h1>
+    <h1>Time Left: {timeleft} mins</h1>
        <button
         onClick={handleEndChat}
         className="bg-red-500 text-white px-4 py-2 rounded"
@@ -160,6 +201,15 @@ const GuestChat = () => {
     </form>
   </div>
 
+   <FeedbackPopUp
+      isOpen={showFeedback}
+      onClose={() => {
+        setShowFeedback(false)
+        navigate("/");
+        }
+      }
+
+    />
 
     </>
   );
