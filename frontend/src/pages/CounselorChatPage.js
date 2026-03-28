@@ -11,6 +11,7 @@ const CounselorChatPage= () => {
 
     const [message , setMessage] = useState([]);
     const [input ,setInput] = useState("");
+    const [timeleft , setTimeleft] =useState(9);
     const bottomRef = useRef(null);
 
 useEffect(() => {
@@ -24,11 +25,21 @@ useEffect(() => {
     setMessage((prev) => [...prev, data]);
   });
 
+  
   return () => {
     socket.off("receiveMessage");
   };
 
 }, []);
+
+useEffect(() => {
+
+  socket.on("timeLeft", (timeleft) => {
+    setTimeleft(timeleft);
+    console.log("Time left: " + timeleft);
+  });
+
+} , []);
 
   const handleEndChat = async () => {
     try {
@@ -124,6 +135,7 @@ useEffect(() => {
   {/* Header */}
   <div className="p-4 bg-blue-600 text-white flex justify-between">
     <h1>{user.name} Chat 💬</h1>
+    <h1>Time Left :{timeleft}</h1>
        <button
         onClick={handleEndChat}
         className="bg-red-500 text-white px-4 py-2 rounded"

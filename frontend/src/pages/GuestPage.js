@@ -88,11 +88,20 @@ const GuestPage = () => {
     setStatus("active");
   });
 
+
   return () => {
     socket.off("conversationActivated");
   };
 
 }, []);
+
+  setInterval(() => {
+     socket.emit("heartbeat");
+  } , 10000);
+   
+  
+
+  
 
    if (loading)
     return <div className="h-screen flex items-center justify-center">Loading...</div>;

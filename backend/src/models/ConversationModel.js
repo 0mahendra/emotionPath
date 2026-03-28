@@ -30,8 +30,21 @@ const conversationSchema = new mongoose.Schema(
       sessionId: String,
     },
 
-    startedAt: Date,
-    endedAt: Date,
+    createdAt:{
+    type:Date,
+    default:Date.now
+  },
+
+  lastActive:{
+    type:Date,
+    default:Date.now
+  },
+   startedAt:Date,
+
+   chatLimit:{
+    type:Number,
+     default:10
+   },
 
     endReason: {
       type: String,
