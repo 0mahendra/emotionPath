@@ -1,28 +1,46 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 import axiosInstance from "../utils/AxiosInstance";
 import socket from "../socket";
-import FeedbackPopUp from "./FeedbackPopUp";
 
-const GuestChat = () => {
+const CounselorChatPage= () => {
 
     const navigate = useNavigate();
+    const {user} = useAuth();
 
     const [message , setMessage] = useState([]);
     const [input ,setInput] = useState("");
+    const [timeleft , setTimeleft] =useState(9);
     const bottomRef = useRef(null);
-    const [timeleft , setTimeleft] = useState(9);
 
-    const [showFeedback, setShowFeedback] = useState(false);
-
-  useEffect(() => {
+useEffect(() => {
   const conversationId = localStorage.getItem("conversationId");
 
   if (conversationId) {
     socket.emit("joinConversation", conversationId);
   }
 
+  socket.on("receiveMessage", (data) => {
+    setMessage((prev) => [...prev, data]);
+  });
+
+  
+  return () => {
+    socket.off("receiveMessage");
+  };
+
 }, []);
+
+useEffect(() => {
+
+  socket.on("timeLeft", (timeleft) => {
+    setTimeleft(timeleft);
+    console.log("Time left: " + timeleft);
+  });
+
+} , []);
+
   const handleEndChat = async () => {
     try {
       const conversationId = localStorage.getItem("conversationId");
@@ -39,23 +57,23 @@ const GuestChat = () => {
       // console.log(res.data);
       localStorage.removeItem("conversationId");
        socket.emit("endChat", conversationId);
-      // navigate("/");
-      setShowFeedback(true);
+      navigate("/counsellor/dashboard");
       
 
     } catch (error) {
       console.error(error);
     }
   };
+
   useEffect(() => {
   socket.on("chatEnded", () => {
-    // navigate("/");
-    setShowFeedback(true);
+    navigate("/");
   });
 
   return () => socket.off("chatEnded");
 }, []);
-
+  
+  
 
   const handleSend = async() => {
       // console.log(input);
@@ -67,82 +85,48 @@ const GuestChat = () => {
     await axiosInstance.post("/api/message/send", {
       conversationId,
       senderId:conversationId,
-      senderRole: "user",
+      senderRole: "counselor",
       text: input
    });
+
    const messageData = {
     conversationId,
-    senderRole: "user",
+    senderRole: "counselor",
     text: input,
   };
 
   socket.emit("sendMessage", messageData);
 
-  // setMessage((prev) => [...prev, messageData]);
-
+//   setMessage((prev) => [...prev, messageData]);
    setInput("");
    
   }
+//   socket.on("receiveMessage", (data) => {
+//     console.log("Received message:", data);
+//   setMessage((prev) => {
+//     if (prev.some(msg => msg._id === data._id)) return prev;
+//     return [...prev, data];
+//   });
+//   console.log("Updated messages:", message);
+// });
+
+  useEffect(()=> {
+
+    const fetchMsg = async () => {
+      const conversationId = localStorage.getItem("conversationId");
+
+      const res = await axiosInstance.get(
+                  `/api/message/${conversationId}`
+                );
+        setMessage(res.data);
+    };
+    fetchMsg();
    
- useEffect(() => {
-  const handleReceive = (data) => {
-    setMessage((prev) => [...prev, data]);
-  };
-
-  socket.on("receiveMessage", handleReceive);
-
-  return () => {
-    socket.off("receiveMessage", handleReceive);
-  };
-}, []);
-  useEffect(() => {
-  const fetchMsg = async () => {
-    const conversationId = localStorage.getItem("conversationId");
-
-    const res = await axiosInstance.get(
-      `/api/message/${conversationId}`
-    );
-    setMessage(res.data);
-  };
-  fetchMsg();
-}, []);
+  }, []);
 
   useEffect(() => {
    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
 }, [message]);
-
-useEffect(()=>{
-
- const interval = setInterval(async()=>{
-  const conversationId = localStorage.getItem("conversationId");
-
-   const res = await axiosInstance.get(`/api/conversation/time-left/${conversationId}`)
-       console.log(res.data);
-       setTimeleft(res.data.timeLeft);
-       const data = {
-        conversationId,
-        timeLeft: res.data.timeLeft,
-      };
-       socket.emit("timeleft" , data);
-      if(res.data.expired){
-
-    socket.emit("endChat",conversationId)
-      alert("Guest limit reached. Signup to continue")
-      handleEndChat();
-      navigate("/signup")
-      }
-    },10000)
-    return ()=>clearInterval(interval)
-    },[]);
-
-    setInterval(()=>{
-      const conversationId = localStorage.getItem("conversationId");
-      const data = {
-        conversationId,
-        timeleft,
-      };
- socket.emit("timeleft",data);
-},1000)
 
   return (
     <>
@@ -150,8 +134,8 @@ useEffect(()=>{
   
   {/* Header */}
   <div className="p-4 bg-blue-600 text-white flex justify-between">
-    <h1>Guest Chat 💬</h1>
-    <h1>Time Left: {timeleft} mins</h1>
+    <h1>{user.name} Chat 💬</h1>
+    <h1>Time Left :{timeleft}</h1>
        <button
         onClick={handleEndChat}
         className="bg-red-500 text-white px-4 py-2 rounded"
@@ -166,7 +150,7 @@ useEffect(()=>{
   <div
     key={index}
     className={`p-2 rounded max-w-xs ${
-      msg.senderRole === "user"
+      msg.senderRole === "counselor"
         ? "bg-blue-500 text-white self-end ml-auto"
         : "bg-gray-200"
     }`}
@@ -189,8 +173,8 @@ useEffect(()=>{
   <div className="p-4 border-t flex gap-2">
     <input
       type="text"
-      value={input}
       onChange={(e)=>setInput(e.target.value)}
+      value={input}
       placeholder="Type a message..."
       className="flex-1 border rounded px-3 py-2"
     />
@@ -199,20 +183,10 @@ useEffect(()=>{
     </button>
     </div>
     </form>
+
   </div>
-
-   <FeedbackPopUp
-      isOpen={showFeedback}
-      onClose={() => {
-        setShowFeedback(false)
-        navigate("/");
-        }
-      }
-
-    />
-
     </>
   );
 };
 
-export default GuestChat;
+export default CounselorChatPage;

@@ -5,6 +5,8 @@ import GuestRoutes from './routes/GuestRoutes.js';
 import ConversationRoutes from './routes/ConversationRoutes.js';
 // import adminRoutes from './routes/AdminRoutes.js';
 import MessageRoutes from "./routes/MessageRoutes.js";
+import AuthRoutes from "./routes/AuthRoutes.js";
+import FeedbackRoutes from "./routes/FeedbackRoutes.js";
 const app = express();
 
 app.use(cors());
@@ -22,5 +24,8 @@ app.use('/api/guest', GuestRoutes);
 app.use("/api/admin", chatRoutes);
 app.use("/api/conversation", ConversationRoutes);
 app.use("/api/message" , MessageRoutes);
+app.use("/api/auth", AuthRoutes);
+app.use("/api/feedback", FeedbackRoutes);
+
 
 export default app;  

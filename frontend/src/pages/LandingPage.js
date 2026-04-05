@@ -43,7 +43,7 @@ const navigate = useNavigate();
                 Start Chat (without sign up)
               </button>
 
-              <button className="ml-4 inline-flex text-gray-700 bg-gray-100 border-0 py-2 px-6 hover:bg-gray-200 rounded-xl text-lg">
+              <button onClick={()=> {navigate("/Auth")}} className="ml-4 inline-flex text-gray-700 bg-gray-100 border-0 py-2 px-6 hover:bg-gray-200 rounded-xl text-lg">
                 Login
               </button>
             </div>

@@ -3,8 +3,9 @@ import MessageModel from "../models/MessageModel.js";
 export const sendMessage = async(req, res)=> {
     try {
     const { conversationId , senderId , senderRole , text} = req.body;
-
+    console.log("called");
     if(!conversationId || !senderId || !senderRole || !text) {
+        console.log("error");
         return res.status(400).json({message : "All fields are required"});
     }
 
@@ -27,7 +28,7 @@ export const getMessages = async (req, res) => {
   try {
     const { conversationId } = req.params;
 
-    const messages = await Message.find({ conversationId })
+    const messages = await MessageModel.find({ conversationId })
       .sort({ createdAt: 1 });
 
     res.json(messages);
